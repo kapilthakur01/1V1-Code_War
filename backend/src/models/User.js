@@ -33,6 +33,7 @@ const userSchema = new mongoose.Schema(
       battles: { type: Number, default: 0 },
       wins: { type: Number, default: 0 },
       losses: { type: Number, default: 0 },
+      winStreak: { type: Number, default: 0 },
     },
     avatar: {
       type: String,

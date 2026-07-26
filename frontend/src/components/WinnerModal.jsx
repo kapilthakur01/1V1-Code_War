@@ -1,7 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { useEffect, useState } from 'react'
 import { FiAward, FiX, FiZap } from 'react-icons/fi'
-
+import { useNavigate } from 'react-router-dom'
 // Simple confetti trigger without library
 function fireConfetti() {
   const colors = ['#7C3AED', '#06B6D4', '#22C55E', '#F59E0B']
@@ -18,6 +18,8 @@ export default function WinnerModal({ winnerId, winnerUsername, winReason, isDra
   const isWinner = !isDraw && winnerId?.toString() === currentUserId?.toString()
   const isLoser = !isDraw && !isWinner
   const [show, setShow] = useState(false)
+  const [countdown, setCountdown] = useState(5)
+  const navigate = useNavigate()
 
   useEffect(() => {
     setShow(true)
@@ -69,6 +71,22 @@ export default function WinnerModal({ winnerId, winnerUsername, winReason, isDra
     }
   }, [isWinner])
 
+  useEffect(() => {
+    if (!show) return
+    const timer = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer)
+          onClose()
+          navigate('/')
+          return 0
+        }
+        return prev - 1
+      })
+    }, 1000)
+    return () => clearInterval(timer)
+  }, [show, onClose, navigate])
+
   const config = isDraw
     ? { icon: '🤝', title: "It's a Draw!", subtitle: 'Equal skills — well played!', color: 'text-warning', border: 'border-warning/30', bg: 'from-warning/10' }
     : isWinner
@@ -115,7 +133,7 @@ export default function WinnerModal({ winnerId, winnerUsername, winReason, isDra
             {!isDraw && (
               <div className="glass-card p-4 mb-6 text-left">
                 <div className="flex items-center gap-2 mb-2">
-                  <FiTrophy className="text-warning" size={16} />
+                  <FiAward className="text-warning" size={16} />
                   <span className="text-xs text-text-muted uppercase tracking-wider">Winner</span>
                 </div>
                 <p className="font-bold text-lg text-text-primary">{winnerUsername}</p>
@@ -130,13 +148,13 @@ export default function WinnerModal({ winnerId, winnerUsername, winReason, isDra
 
             <div className="flex gap-3">
               <button
-                onClick={() => { onClose(); window.location.href = '/matchmaking' }}
+                onClick={() => { onClose(); navigate('/') }}
                 className="btn-primary flex-1 py-2.5"
               >
-                Battle Again
+                Dashboard ({countdown}s)
               </button>
               <button
-                onClick={() => { onClose(); window.location.href = '/history' }}
+                onClick={() => { onClose(); navigate('/history') }}
                 className="btn-secondary flex-1 py-2.5"
               >
                 View History

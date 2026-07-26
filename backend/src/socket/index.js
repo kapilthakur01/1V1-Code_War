@@ -371,22 +371,35 @@ async function endBattle(io, roomId, { winnerId, winnerUsername, winReason, isDr
       const isP1Winner = winnerId && p1.userId.toString() === winnerId.toString();
       const isP2Winner = winnerId && p2.userId.toString() === winnerId.toString();
 
-      await Promise.all([
-        User.findByIdAndUpdate(p1.userId, {
-          $inc: {
-            'stats.battles': 1,
-            'stats.wins': isDraw ? 0 : isP1Winner ? 1 : 0,
-            'stats.losses': isDraw ? 0 : isP1Winner ? 0 : 1,
-          },
-        }),
-        User.findByIdAndUpdate(p2.userId, {
-          $inc: {
-            'stats.battles': 1,
-            'stats.wins': isDraw ? 0 : isP2Winner ? 1 : 0,
-            'stats.losses': isDraw ? 0 : isP2Winner ? 0 : 1,
-          },
-        }),
-      ]);
+      const p1User = await User.findById(p1.userId);
+      if (p1User) {
+        p1User.stats.battles += 1;
+        if (isDraw) {
+          p1User.stats.winStreak = 0;
+        } else if (isP1Winner) {
+          p1User.stats.wins += 1;
+          p1User.stats.winStreak = (p1User.stats.winStreak || 0) + 1;
+        } else {
+          p1User.stats.losses += 1;
+          p1User.stats.winStreak = 0;
+        }
+        await p1User.save();
+      }
+
+      const p2User = await User.findById(p2.userId);
+      if (p2User) {
+        p2User.stats.battles += 1;
+        if (isDraw) {
+          p2User.stats.winStreak = 0;
+        } else if (isP2Winner) {
+          p2User.stats.wins += 1;
+          p2User.stats.winStreak = (p2User.stats.winStreak || 0) + 1;
+        } else {
+          p2User.stats.losses += 1;
+          p2User.stats.winStreak = 0;
+        }
+        await p2User.save();
+      }
 
       // Get best submissions for battle record
       const submissions = await Submission.find({ roomId, isRun: false }).sort({ submittedAt: 1 });

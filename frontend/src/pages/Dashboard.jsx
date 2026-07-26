@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useAuth } from '../contexts/AuthContext'
 import api from '../api/axios'
-import { FiTrendingUp, FiAward, FiXCircle, FiClock, FiArrowRight, FiRefreshCw } from 'react-icons/fi'
+import { FiTrendingUp, FiAward, FiXCircle, FiClock, FiArrowRight, FiRefreshCw, FiZap } from 'react-icons/fi'
 import { FiSword } from '../components/SwordIcon'
 import { StatSkeleton } from '../components/LoadingSkeleton'
 
@@ -41,12 +41,13 @@ export default function Dashboard() {
   const wins = user?.stats?.wins || 0
   const losses = user?.stats?.losses || 0
   const battles = user?.stats?.battles || 0
+  const winStreak = user?.stats?.winStreak || 0
   const winRate = battles > 0 ? Math.round((wins / battles) * 100) : 0
 
   const stats = [
     { label: 'Total Battles', value: battles, icon: <FiSword size={20} />, color: 'text-primary', border: 'border-primary/20', bg: 'bg-primary/5' },
     { label: 'Wins', value: wins, icon: <FiAward size={20} />, color: 'text-success', border: 'border-success/20', bg: 'bg-success/5' },
-    { label: 'Losses', value: losses, icon: <FiXCircle size={20} />, color: 'text-error', border: 'border-error/20', bg: 'bg-error/5' },
+    { label: 'Win Streak', value: winStreak, icon: <FiZap size={20} />, color: 'text-warning', border: 'border-warning/20', bg: 'bg-warning/5' },
     { label: 'Win Rate', value: `${winRate}%`, icon: <FiTrendingUp size={20} />, color: 'text-secondary', border: 'border-secondary/20', bg: 'bg-secondary/5' },
   ]
 
