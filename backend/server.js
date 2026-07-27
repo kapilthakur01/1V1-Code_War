@@ -55,8 +55,21 @@ app.use('/api/submissions', submissionsRoutes);
 app.use('/api/history', historyRoutes);
 app.use('/api/admin', adminRoutes);
 
+// Root route to indicate the backend is running
+app.get('/', (req, res) => {
+  res.json({
+    message: 'CodeClash Backend is running successfully!',
+    environment: process.env.NODE_ENV || 'development'
+  });
+});
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.json({ status: 'OK', server: 'running', timestamp: new Date().toISOString() });
+});
+
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  res.json({ status: 'OK', server: 'running', timestamp: new Date().toISOString() });
 });
 
 // 404 handler
