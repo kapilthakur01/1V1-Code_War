@@ -8,22 +8,16 @@ const connectDB = async () => {
     return;
   }
 
-  let uri = process.env.MONGODB_URI;
+  const uri = process.env.MONGODB_URI;
+  const isProduction = process.env.NODE_ENV === 'production';
 
-  // In production, MONGODB_URI is required — no in-memory fallback
-  if (process.env.NODE_ENV === 'production') {
+  // ── Production: MONGODB_URI is mandatory, no fallbacks ──
+  if (isProduction) {
     if (!uri) {
-      throw new Error('MONGODB_URI environment variable is required in production!');
+      console.error('❌ MONGODB_URI is not set! Cannot start without a database in production.');
+      console.error('   Set MONGODB_URI in your Render environment variables.');
+      process.exit(1);
     }
-    const conn = await mongoose.connect(uri, { serverSelectionTimeoutMS: 10000 });
-    console.log(`✅ MongoDB connected: ${conn.connection.host}`);
-    return;
-  }
-
-  // ── Development mode below ──
-
-  // Try connecting to the provided URI first
-  if (uri && !uri.includes('localhost') && !uri.includes('127.0.0.1')) {
     try {
       const conn = await mongoose.connect(uri, { serverSelectionTimeoutMS: 10000 });
       console.log(`✅ MongoDB connected: ${conn.connection.host}`);
@@ -34,19 +28,24 @@ const connectDB = async () => {
     }
   }
 
-  // Try local MongoDB first
+  // ── Development: Try provided URI first ──
   if (uri) {
     try {
-      const conn = await mongoose.connect(uri, { serverSelectionTimeoutMS: 3000 });
+      const conn = await mongoose.connect(uri, {
+        serverSelectionTimeoutMS: uri.includes('localhost') || uri.includes('127.0.0.1') ? 3000 : 10000,
+      });
       console.log(`✅ MongoDB connected: ${conn.connection.host}`);
       return;
-    } catch (_) {
-      console.warn('⚠️  Could not connect to local MongoDB — starting in-memory MongoDB...');
+    } catch (err) {
+      console.warn(`⚠️  Could not connect to MongoDB (${err.message})`);
+      console.warn('   Falling back to in-memory MongoDB...');
     }
   }
 
-  // Fallback to in-memory server (development only)
+  // ── Development fallback: in-memory MongoDB ──
   try {
+    // Dynamic require — this package is in devDependencies only
+    // It will NOT be installed in production (npm install --production)
     const { MongoMemoryServer } = require('mongodb-memory-server');
 
     if (!_memServer) {
@@ -58,7 +57,9 @@ const connectDB = async () => {
     const conn = await mongoose.connect(memUri, { serverSelectionTimeoutMS: 10000 });
     console.log(`✅ MongoDB connected: ${conn.connection.host}`);
   } catch (memErr) {
-    console.error('❌ mongodb-memory-server failed:', memErr.message);
+    console.error('❌ mongodb-memory-server is not available.');
+    console.error('   Install it with: npm install -D mongodb-memory-server');
+    console.error('   Or set MONGODB_URI to connect to a real MongoDB instance.');
     throw memErr;
   }
 };
@@ -71,4 +72,3 @@ process.on('SIGINT', async () => {
 });
 
 module.exports = connectDB;
-
