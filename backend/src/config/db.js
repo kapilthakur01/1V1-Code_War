@@ -10,6 +10,18 @@ const connectDB = async () => {
 
   let uri = process.env.MONGODB_URI;
 
+  // In production, MONGODB_URI is required — no in-memory fallback
+  if (process.env.NODE_ENV === 'production') {
+    if (!uri) {
+      throw new Error('MONGODB_URI environment variable is required in production!');
+    }
+    const conn = await mongoose.connect(uri, { serverSelectionTimeoutMS: 10000 });
+    console.log(`✅ MongoDB connected: ${conn.connection.host}`);
+    return;
+  }
+
+  // ── Development mode below ──
+
   // Try connecting to the provided URI first
   if (uri && !uri.includes('localhost') && !uri.includes('127.0.0.1')) {
     try {
@@ -33,7 +45,7 @@ const connectDB = async () => {
     }
   }
 
-  // Fallback to in-memory server
+  // Fallback to in-memory server (development only)
   try {
     const { MongoMemoryServer } = require('mongodb-memory-server');
 
@@ -59,3 +71,4 @@ process.on('SIGINT', async () => {
 });
 
 module.exports = connectDB;
+
