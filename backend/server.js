@@ -23,7 +23,7 @@ const server = http.createServer(app);
 // ── Socket.IO ──────────────────────────────────────────────
 const io = new Server(server, {
   cors: {
-    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+    origin: process.env.FRONTEND_URL || true,
     methods: ['GET', 'POST'],
     credentials: true,
   },
@@ -33,7 +33,7 @@ const io = new Server(server, {
 // ── Middleware ─────────────────────────────────────────────
 app.use(helmet({ contentSecurityPolicy: false }));
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  origin: process.env.FRONTEND_URL || true,
   credentials: true,
 }));
 app.use(express.json({ limit: '2mb' }));
