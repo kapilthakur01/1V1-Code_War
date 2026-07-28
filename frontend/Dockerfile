@@ -2,12 +2,15 @@ FROM node:20-alpine AS build
 
 WORKDIR /app
 
-COPY package*.json ./
-RUN npm ci
-
+# Copy all source files
 COPY . .
 
-# Build args passed from render.yaml (baked into static JS bundle)
+# Always delete any copied node_modules (avoids Windows permission issues)
+# and do a clean install on Linux
+RUN rm -rf node_modules
+RUN npm install
+
+# Build args — baked into the static JS bundle by Vite
 ARG VITE_API_URL
 ARG VITE_BACKEND_URL
 ENV VITE_API_URL=$VITE_API_URL
