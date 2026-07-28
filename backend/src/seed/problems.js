@@ -129,7 +129,7 @@ async function seed() {
 }
 
 async function seedCLI() {
-  require('dotenv').config({ path: require('path').resolve(__dirname, '../../../.env') });
+  require('dotenv').config();
   const connectDB = require('../config/db');
   await connectDB();
   await seed();

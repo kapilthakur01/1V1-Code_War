@@ -1,14 +1,17 @@
 FROM node:20-alpine
 
-# Install Docker CLI for judge execution
-RUN apk add --no-cache docker-cli
+# Install C++ compiler and Java runtime for local code execution
+# (Docker-in-Docker is not available on Render — executor.js uses local fallback)
+RUN apk add --no-cache \
+    g++ \
+    openjdk17-jdk \
+    bash
 
 WORKDIR /app
 
 COPY package*.json ./
 
 # --omit=dev skips devDependencies (mongodb-memory-server, nodemon)
-# This ensures mongodb-memory-server is NEVER installed in production
 RUN npm ci --omit=dev
 
 COPY . .

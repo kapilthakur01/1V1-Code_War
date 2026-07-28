@@ -1,0 +1,43 @@
+services:
+  # ─────────────────────────────────────────────────────────────
+  # BACKEND — Node.js Web Service
+  # ─────────────────────────────────────────────────────────────
+  - type: web
+    name: codeclash-backend
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 5000
+      - key: MONGODB_URI
+        sync: false          # Set this in the Render dashboard — your MongoDB Atlas URI
+      - key: JWT_SECRET
+        sync: false          # Set this in the Render dashboard — a strong random secret
+      - key: JWT_EXPIRES_IN
+        value: 7d
+      - key: FRONTEND_URL
+        sync: false          # Set this to your frontend Render URL after deploying it
+      - key: JUDGE_TIMEOUT_MS
+        value: 5000          # Increased for Render free tier (slower than local Docker)
+      - key: JUDGE_MEMORY_MB
+        value: 256
+      - key: TEMP_DIR
+        value: ./temp
+
+  # ─────────────────────────────────────────────────────────────
+  # FRONTEND — Static Site
+  # ─────────────────────────────────────────────────────────────
+  - type: web
+    name: codeclash-frontend
+    runtime: docker
+    dockerfilePath: ./frontend/Dockerfile
+    dockerContext: ./frontend
+    plan: free
+    envVars:
+      - key: VITE_BACKEND_URL
+        sync: false          # Set this to https://codeclash-backend.onrender.com (your backend URL)

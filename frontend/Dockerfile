@@ -1,9 +1,18 @@
 FROM node:20-alpine AS build
 
 WORKDIR /app
+
 COPY package*.json ./
-RUN npm install
+RUN npm ci
+
 COPY . .
+
+# Build args passed from render.yaml (baked into static JS bundle)
+ARG VITE_API_URL
+ARG VITE_BACKEND_URL
+ENV VITE_API_URL=$VITE_API_URL
+ENV VITE_BACKEND_URL=$VITE_BACKEND_URL
+
 RUN npm run build
 
 FROM nginx:alpine
