@@ -10,6 +10,7 @@ export default function Login() {
   const [form, setForm] = useState({ email: '', password: '' })
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
   const { login } = useAuth()
   const navigate = useNavigate()
 
@@ -17,12 +18,15 @@ export default function Login() {
     e.preventDefault()
     if (!form.email || !form.password) return toast.error('All fields are required')
     setLoading(true)
+    setError('')
     try {
       await login(form.email, form.password)
       toast.success('Welcome back!')
-      navigate('/dashboard')
+      navigate('/dashboard', { replace: true })
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Login failed')
+      const msg = err.response?.data?.message || 'Invalid email or password. Please try again.'
+      setError(msg)
+      toast.error(msg)
     } finally {
       setLoading(false)
     }
@@ -49,6 +53,12 @@ export default function Login() {
         {/* Card */}
         <div className="glass-card p-8">
           <form onSubmit={handleSubmit} className="space-y-5">
+            {error && (
+              <div className="flex items-center gap-2 bg-error/10 border border-error/30 text-error text-sm px-4 py-3 rounded-lg">
+                <span className="text-base">⚠️</span>
+                <span>{error}</span>
+              </div>
+            )}
             <div>
               <label className="block text-sm font-medium text-text-secondary mb-2">Email</label>
               <div className="relative">

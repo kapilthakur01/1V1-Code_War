@@ -41,7 +41,7 @@ function App() {
           <Route path="/admin/problems" element={<AdminProblems />} />
         </Route>
 
-        <Route path="*" element={<Navigate to="/" />} />
+        <Route path="*" element={<Navigate to={user ? '/dashboard' : '/login'} replace />} />
       </Routes>
     </div>
   )
