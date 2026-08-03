@@ -95,7 +95,8 @@ export default function Room() {
   const [isVerified, setIsVerified] = useState(false)
   
   const proctorVideoRef = useRef(null)
-  const { violations, isTerminated } = useProctoring(roomId, proctorVideoRef)
+  // Only activate proctoring after camera verification
+  const { violations, isTerminated } = useProctoring(isVerified ? roomId : null, proctorVideoRef)
 
   // Editor state
   const [language, setLanguage] = useState(LANGUAGES[0])
@@ -121,7 +122,7 @@ export default function Room() {
   // Winner state
   const [battleResult, setBattleResult] = useState(null)
 
-  // Connect to socket room
+  // Connect to socket room (only after camera verification)
   useEffect(() => {
     if (!socket || !roomId || !isVerified) return
     socket.emit('join-room', { roomId })
@@ -283,6 +284,63 @@ export default function Room() {
           <div className="w-12 h-12 rounded-full border-2 border-primary border-t-transparent animate-spin" />
           <p className="text-text-secondary">Connecting to battle room...</p>
         </div>
+      </div>
+    )
+  }
+
+  // Waiting overlay — shown after verification but before opponent joins
+  if (status === 'waiting' && !opponentUsername) {
+    return (
+      <div className="min-h-[calc(100vh-64px)] flex items-center justify-center p-4">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="glass-card max-w-md w-full p-10 text-center"
+        >
+          {/* Animated ring */}
+          <div className="relative w-28 h-28 mx-auto mb-7">
+            <div className="absolute inset-0 rounded-full border-2 border-secondary/15" />
+            <div className="absolute inset-0 rounded-full border-2 border-secondary/30 animate-ping" style={{ animationDuration: '1.8s' }} />
+            <div className="absolute inset-0 rounded-full border-2 border-secondary/20 animate-ping" style={{ animationDuration: '2.4s', animationDelay: '0.6s' }} />
+            <div className="relative w-28 h-28 rounded-full bg-secondary/10 border border-secondary/40 flex items-center justify-center">
+              <FiUser size={36} className="text-secondary animate-pulse" />
+            </div>
+          </div>
+
+          <h2 className="text-2xl font-bold text-text-primary mb-2">Camera Verified ✅</h2>
+          <p className="text-text-secondary mb-6 text-sm">
+            You're all set! Waiting for your opponent to join and verify their camera...
+          </p>
+
+          {/* Room code */}
+          {room?.roomCode && (
+            <div className="mb-6">
+              <p className="text-xs text-text-muted uppercase tracking-widest mb-2">Room Code</p>
+              <div className="bg-bg-secondary border-2 border-secondary/40 rounded-xl px-6 py-3 inline-block">
+                <span className="text-2xl font-mono font-black tracking-[0.25em] text-secondary select-all">
+                  {room.roomCode}
+                </span>
+              </div>
+            </div>
+          )}
+
+          <div className="flex items-center justify-center gap-2 text-text-muted text-sm animate-pulse">
+            <div className="w-2 h-2 rounded-full bg-warning" />
+            Waiting for opponent to join...
+          </div>
+
+          {/* Small webcam preview */}
+          <div className="mt-6 mx-auto w-32 aspect-video bg-black rounded-lg overflow-hidden border border-secondary/30">
+            <video
+              ref={proctorVideoRef}
+              autoPlay
+              playsInline
+              muted
+              className="w-full h-full object-cover transform scale-x-[-1]"
+            />
+          </div>
+          <p className="text-xs text-text-muted mt-1">Your camera is active for proctoring</p>
+        </motion.div>
       </div>
     )
   }

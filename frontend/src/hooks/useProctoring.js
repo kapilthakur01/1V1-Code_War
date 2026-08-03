@@ -35,8 +35,9 @@ export default function useProctoring(roomId, videoRef) {
     }
   }, [socket, roomId, isTerminated]);
 
-  // Request camera and load model
+  // Request camera and load model (only when roomId is truthy, i.e., after verification)
   useEffect(() => {
+    if (!roomId) return; // Don't start camera before verification
     let active = true;
 
     async function setup() {
@@ -119,9 +120,9 @@ export default function useProctoring(roomId, videoRef) {
     };
   }, [detector, stream, detectFaces, videoRef]);
 
-  // Environment monitoring
+  // Environment monitoring (only when roomId is truthy)
   useEffect(() => {
-    if (isTerminated) return;
+    if (!roomId || isTerminated) return;
 
     const handleVisibilityChange = () => {
       if (document.hidden) {

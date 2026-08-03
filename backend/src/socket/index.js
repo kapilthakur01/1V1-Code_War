@@ -112,6 +112,28 @@ function initSocket(io) {
       }
     });
 
+    // ── Watch Room (subscribe without marking as connected) ──
+    // Used by room creator to listen for opponent joining while on matchmaking page
+    socket.on('watch-room', async (data) => {
+      try {
+        const { roomId } = data;
+        const userId = socket.user._id.toString();
+
+        const room = await Room.findById(roomId);
+        if (!room) return;
+
+        const isPlayer = room.players.some((p) => p.userId.toString() === userId);
+        if (!isPlayer) return;
+
+        // Just subscribe to the socket room channel for events — no DB changes
+        socket.join(roomId);
+        console.log(`👁️  ${socket.user.username} watching room ${roomId}`);
+      } catch (err) {
+        console.error('watch-room error:', err);
+      }
+    });
+
+
     // ── Typing indicator ────────────────────────────────────
     socket.on('typing', (data) => {
       const { roomId, isTyping } = data;

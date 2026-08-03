@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useAuth } from '../contexts/AuthContext'
 import { useSocket } from '../contexts/SocketContext'
 import api from '../api/axios'
-import { FiSearch, FiLock, FiPlus, FiUsers, FiCopy, FiCheck, FiX, FiAlertCircle } from 'react-icons/fi'
+import { FiSearch, FiLock, FiPlus, FiUsers, FiCopy, FiCheck, FiX, FiAlertCircle, FiClock, FiZap } from 'react-icons/fi'
 import { FiSword } from '../components/SwordIcon'
 import toast from 'react-hot-toast'
 
@@ -16,12 +16,19 @@ export default function Matchmaking() {
   const { socket } = useSocket()
   const navigate = useNavigate()
 
-  const [mode, setMode] = useState(null) // 'searching' | 'creating' | 'joining'
+  const [mode, setMode] = useState(null) // 'searching' | 'creating' | 'joining' | 'waiting-private'
   const [joinCode, setJoinCode] = useState('')
   const [searching, setSearching] = useState(false)
   const [searchTime, setSearchTime] = useState(0) // elapsed seconds
   const [copied, setCopied] = useState(false)
   const [timedOut, setTimedOut] = useState(false)
+
+  // Private room waiting state
+  const [privateRoomId, setPrivateRoomId] = useState(null)
+  const [privateRoomCode, setPrivateRoomCode] = useState(null)
+  const [waitingTime, setWaitingTime] = useState(0)
+  const [opponentJoined, setOpponentJoined] = useState(false)
+  const waitingTimerRef = useRef(null)
 
   const searchTimerRef = useRef(null)   // counts elapsed seconds
   const pollRef = useRef(null)          // polling interval
@@ -33,6 +40,7 @@ export default function Matchmaking() {
     clearInterval(searchTimerRef.current)
     clearInterval(pollRef.current)
     clearTimeout(timeoutRef.current)
+    clearInterval(waitingTimerRef.current)
   }, [])
 
   // ── Cancel search (also calls backend to remove from queue) ─
@@ -58,7 +66,7 @@ export default function Matchmaking() {
     }
   }, [clearAllTimers])
 
-  // ── Handle socket events ────────────────────────────────────
+  // ── Handle socket events (public matchmaking) ────────────────
   useEffect(() => {
     if (!socket) return
 
@@ -88,6 +96,23 @@ export default function Matchmaking() {
       socket.off('match-timeout', handleMatchTimeout)
     }
   }, [socket, navigate, clearAllTimers])
+
+  // ── Private room: wait for opponent to join ──────────────────
+  useEffect(() => {
+    if (!socket || mode !== 'waiting-private' || !privateRoomId) return
+
+    const handlePlayerConnected = ({ username }) => {
+      setOpponentJoined(true)
+      clearInterval(waitingTimerRef.current)
+      toast.success(`⚔️ ${username} joined! Starting battle...`, { duration: 3000 })
+      setTimeout(() => navigate(`/room/${privateRoomId}`), 1500)
+    }
+
+    socket.on('player-connected', handlePlayerConnected)
+    return () => {
+      socket.off('player-connected', handlePlayerConnected)
+    }
+  }, [socket, mode, privateRoomId, navigate])
 
   // ── Start matchmaking search ────────────────────────────────
   const startSearch = async () => {
@@ -163,11 +188,39 @@ export default function Matchmaking() {
     setMode('creating')
     try {
       const res = await api.post('/match/create-private')
-      navigate(`/room/${res.data.roomId}`)
+      const { roomId, roomCode } = res.data
+      setPrivateRoomId(roomId)
+      setPrivateRoomCode(roomCode)
+      setWaitingTime(0)
+      setOpponentJoined(false)
+      setMode('waiting-private')
+      // Watch socket room to receive player-connected event (without marking as "in room")
+      socket?.emit('watch-room', { roomId })
+      // Start elapsed time counter
+      waitingTimerRef.current = setInterval(() => {
+        setWaitingTime(t => t + 1)
+      }, 1000)
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to create room')
       setMode(null)
     }
+  }
+
+  const cancelPrivateRoom = () => {
+    clearInterval(waitingTimerRef.current)
+    setMode(null)
+    setPrivateRoomId(null)
+    setPrivateRoomCode(null)
+    setWaitingTime(0)
+  }
+
+  const copyRoomCode = () => {
+    if (!privateRoomCode) return
+    navigator.clipboard.writeText(privateRoomCode).then(() => {
+      setCopied(true)
+      toast.success('Room code copied!')
+      setTimeout(() => setCopied(false), 2000)
+    })
   }
 
   const joinPrivate = async (e) => {
@@ -298,6 +351,97 @@ export default function Matchmaking() {
                 Back
               </button>
             </div>
+          </motion.div>
+        )}
+
+        {/* ── Private Room Waiting Lobby ── */}
+        {mode === 'waiting-private' && (
+          <motion.div
+            key="waiting-private"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className="glass-card p-10 text-center"
+          >
+            {/* Animated ring */}
+            <div className="relative w-32 h-32 mx-auto mb-7">
+              <div className="absolute inset-0 rounded-full border-2 border-secondary/15" />
+              <div className="absolute inset-0 rounded-full border-2 border-secondary/30 animate-ping" style={{ animationDuration: '1.8s' }} />
+              <div className="absolute inset-0 rounded-full border-2 border-secondary/20 animate-ping" style={{ animationDuration: '2.4s', animationDelay: '0.6s' }} />
+              <div className={`relative w-32 h-32 rounded-full flex items-center justify-center border ${opponentJoined ? 'bg-success/10 border-success/40' : 'bg-secondary/10 border-secondary/40'}`}>
+                {opponentJoined
+                  ? <FiZap size={40} className="text-success animate-pulse" />
+                  : <FiLock size={40} className="text-secondary animate-pulse" />
+                }
+              </div>
+            </div>
+
+            <h2 className="text-2xl font-bold text-text-primary mb-1">
+              {opponentJoined ? '⚔️ Opponent Found!' : 'Room Created!'}
+            </h2>
+            <p className="text-text-secondary mb-6 text-sm">
+              {opponentJoined
+                ? 'Redirecting to the battle arena...'
+                : 'Share the code below with your opponent. The battle starts when they join.'
+              }
+            </p>
+
+            {/* Room Code Display */}
+            {!opponentJoined && (
+              <>
+                <div className="mb-2">
+                  <p className="text-xs text-text-muted uppercase tracking-widest mb-3">Your Room Code</p>
+                  <div className="flex items-center justify-center gap-3 mb-4">
+                    <div className="bg-bg-secondary border-2 border-secondary/40 rounded-2xl px-8 py-4">
+                      <span className="text-4xl font-mono font-black tracking-[0.3em] text-secondary select-all">
+                        {privateRoomCode}
+                      </span>
+                    </div>
+                    <button
+                      onClick={copyRoomCode}
+                      className={`flex flex-col items-center gap-1 px-4 py-3 rounded-xl border transition-all text-sm font-semibold ${
+                        copied
+                          ? 'bg-success/10 border-success/40 text-success'
+                          : 'bg-bg-hover border-border text-text-muted hover:text-text-primary hover:border-primary/40'
+                      }`}
+                    >
+                      {copied ? <FiCheck size={20} /> : <FiCopy size={20} />}
+                      {copied ? 'Copied!' : 'Copy'}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Waiting time */}
+                <div className="flex items-center justify-center gap-2 mb-6 text-text-muted text-sm">
+                  <FiClock size={14} className="animate-pulse" />
+                  <span>Waiting for opponent — <span className="font-mono font-bold text-text-secondary">{formatTime(waitingTime)}</span></span>
+                </div>
+
+                {/* Instructions */}
+                <div className="bg-bg-secondary/60 rounded-xl p-4 mb-6 text-left text-sm text-text-muted space-y-1.5 border border-border">
+                  <p className="font-semibold text-text-secondary mb-2">📋 How to invite:</p>
+                  <p>1. Copy the room code above</p>
+                  <p>2. Send it to your friend</p>
+                  <p>3. They join via the <strong className="text-text-primary">"Join Room"</strong> option on this page</p>
+                  <p>4. Once they join, the coding battle starts automatically!</p>
+                </div>
+
+                <button
+                  onClick={cancelPrivateRoom}
+                  className="btn-danger py-2.5 px-8"
+                >
+                  <FiX size={16} /> Cancel Room
+                </button>
+              </>
+            )}
+
+            {/* Opponent joined — show loading */}
+            {opponentJoined && (
+              <div className="flex items-center justify-center gap-3 text-success font-semibold">
+                <div className="w-5 h-5 border-2 border-success border-t-transparent rounded-full animate-spin" />
+                Loading battle arena...
+              </div>
+            )}
           </motion.div>
         )}
 
