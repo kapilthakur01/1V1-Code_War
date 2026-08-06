@@ -39,6 +39,20 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: '',
     },
+    debateStats: {
+      totalDebates: { type: Number, default: 0 },
+      wins: { type: Number, default: 0 },
+      losses: { type: Number, default: 0 },
+      draws: { type: Number, default: 0 },
+      averageScore: { type: Number, default: 0 },
+    },
+    debateSkills: {
+      logic: { type: Number, default: 50 },
+      communication: { type: Number, default: 50 },
+      confidence: { type: Number, default: 50 },
+      criticalThinking: { type: Number, default: 50 },
+      evidence: { type: Number, default: 50 },
+    },
   },
   { timestamps: true }
 );

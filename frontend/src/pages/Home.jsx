@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { FiZap, FiShield, FiClock, FiCode, FiArrowRight, FiTrendingUp } from 'react-icons/fi'
+import { FiZap, FiShield, FiClock, FiCode, FiArrowRight, FiTrendingUp, FiMessageCircle, FiMic } from 'react-icons/fi'
 import { FiSword } from '../components/SwordIcon'
 
 const features = [
@@ -51,6 +51,22 @@ const features = [
     color: 'text-secondary',
     border: 'border-secondary/20',
     bg: 'bg-secondary/5',
+  },
+  {
+    icon: <FiMessageCircle size={24} />,
+    title: 'AI Debate Arena',
+    desc: 'Practice debates with an AI opponent, get real-time argument analysis, fallacy detection, and personalized coaching.',
+    color: 'text-warning',
+    border: 'border-warning/20',
+    bg: 'bg-warning/5',
+  },
+  {
+    icon: <FiMic size={24} />,
+    title: 'Voice Debate Mode',
+    desc: 'Debate using your voice with speech-to-text. Compete with friends in real-time or practice with AI.',
+    color: 'text-error',
+    border: 'border-error/20',
+    bg: 'bg-error/5',
   },
 ]
 
@@ -205,7 +221,7 @@ export default function Home() {
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true }}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
         >
           {features.map((f) => (
             <motion.div key={f.title} variants={itemVariants} className="glass-card-hover p-6">

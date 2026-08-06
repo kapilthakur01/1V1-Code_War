@@ -14,7 +14,12 @@ const problemsRoutes = require('./src/routes/problems');
 const submissionsRoutes = require('./src/routes/submissions');
 const historyRoutes = require('./src/routes/history');
 const adminRoutes = require('./src/routes/admin');
+const debateRoutes = require('./src/routes/debate');
+const debateRoomRoutes = require('./src/routes/debateRoom');
+const debateLeaderboardRoutes = require('./src/routes/debateLeaderboard');
+const debateResultsRoutes = require('./src/routes/debateResults');
 const initSocket = require('./src/socket');
+const initDebateSocket = require('./src/socket/debateSocket');
 const { initMatchController } = require('./src/controllers/matchController');
 
 const app = express();
@@ -54,6 +59,10 @@ app.use('/api/problems', problemsRoutes);
 app.use('/api/submissions', submissionsRoutes);
 app.use('/api/history', historyRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/debate', debateRoutes);
+app.use('/api/debate-room', debateRoomRoutes);
+app.use('/api/debate-leaderboard', debateLeaderboardRoutes);
+app.use('/api/debate-result', debateResultsRoutes);
 
 // Root route to indicate the backend is running
 app.get('/', (req, res) => {
@@ -101,6 +110,7 @@ connectDB().then(async () => {
 
   initSocket(io);
   initMatchController(io);
+  initDebateSocket(io);
 
   server.listen(PORT, () => {
     console.log(`🚀 CodeClash backend running on port ${PORT}`);

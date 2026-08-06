@@ -11,6 +11,16 @@ import History from './pages/History'
 import AdminProblems from './pages/admin/Problems'
 import ProtectedRoute from './components/ProtectedRoute'
 
+// Debate Arena Pages
+import DebateHome from './pages/debate/DebateHome'
+import AIDebateSetup from './pages/debate/AIDebateSetup'
+import AIDebateRoom from './pages/debate/AIDebateRoom'
+import LiveDebateSetup from './pages/debate/LiveDebateSetup'
+import LiveDebateRoom from './pages/debate/LiveDebateRoom'
+import DebateResult from './pages/debate/DebateResult'
+import DebateLeaderboard from './pages/debate/DebateLeaderboard'
+import DebateProfile from './pages/debate/DebateProfile'
+
 function App() {
   const { user, loading } = useAuth()
 
@@ -39,6 +49,16 @@ function App() {
           <Route path="/room/:roomId" element={<Room />} />
           <Route path="/history" element={<History />} />
           <Route path="/admin/problems" element={<AdminProblems />} />
+
+          {/* Debate Arena Routes */}
+          <Route path="/debate" element={<DebateHome />} />
+          <Route path="/debate/ai-setup" element={<AIDebateSetup />} />
+          <Route path="/debate/ai/:debateId" element={<AIDebateRoom />} />
+          <Route path="/debate/live-setup" element={<LiveDebateSetup />} />
+          <Route path="/debate/live/:roomCode" element={<LiveDebateRoom />} />
+          <Route path="/debate/result/:debateId" element={<DebateResult />} />
+          <Route path="/debate/leaderboard" element={<DebateLeaderboard />} />
+          <Route path="/debate/profile" element={<DebateProfile />} />
         </Route>
 
         <Route path="*" element={<Navigate to={user ? '/dashboard' : '/login'} replace />} />

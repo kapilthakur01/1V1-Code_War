@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { useSocket } from '../contexts/SocketContext'
-import { FiMenu, FiX, FiUser, FiLogOut, FiClock, FiBookOpen, FiSettings } from 'react-icons/fi'
+import { FiMenu, FiX, FiUser, FiLogOut, FiClock, FiBookOpen, FiSettings, FiMessageCircle } from 'react-icons/fi'
 import { FiSword } from './SwordIcon'
 import toast from 'react-hot-toast'
 
@@ -25,6 +25,7 @@ export default function Navbar() {
     ? [
         { to: '/dashboard', label: 'Dashboard', icon: <FiUser size={16} /> },
         { to: '/matchmaking', label: 'Battle', icon: <FiSword size={16} /> },
+        { to: '/debate', label: 'Debate', icon: <FiMessageCircle size={16} /> },
         { to: '/history', label: 'History', icon: <FiClock size={16} /> },
         ...(user.isAdmin ? [{ to: '/admin/problems', label: 'Admin', icon: <FiSettings size={16} /> }] : []),
       ]

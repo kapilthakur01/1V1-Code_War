@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useAuth } from '../contexts/AuthContext'
 import api from '../api/axios'
-import { FiTrendingUp, FiAward, FiXCircle, FiClock, FiArrowRight, FiRefreshCw, FiZap } from 'react-icons/fi'
+import { FiTrendingUp, FiAward, FiXCircle, FiClock, FiArrowRight, FiRefreshCw, FiZap, FiMessageCircle } from 'react-icons/fi'
 import { FiSword } from '../components/SwordIcon'
 import { StatSkeleton } from '../components/LoadingSkeleton'
 
@@ -119,7 +119,7 @@ export default function Dashboard() {
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
-        className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8"
+        className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8"
       >
         <Link to="/matchmaking" className="glass-card-hover p-6 flex items-center gap-4 group">
           <div className="w-12 h-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary group-hover:shadow-glow-sm transition-all">
@@ -130,6 +130,16 @@ export default function Dashboard() {
             <p className="text-sm text-text-muted">Public matchmaking queue</p>
           </div>
           <FiArrowRight size={18} className="text-text-muted group-hover:text-primary transition-colors" />
+        </Link>
+        <Link to="/debate" className="glass-card-hover p-6 flex items-center gap-4 group">
+          <div className="w-12 h-12 rounded-xl bg-warning/10 border border-warning/20 flex items-center justify-center text-warning group-hover:shadow-glow-sm transition-all">
+            <FiMessageCircle size={22} />
+          </div>
+          <div className="flex-1">
+            <h3 className="font-bold text-text-primary">Debate Arena</h3>
+            <p className="text-sm text-text-muted">AI-powered debates</p>
+          </div>
+          <FiArrowRight size={18} className="text-text-muted group-hover:text-warning transition-colors" />
         </Link>
         <Link to="/history" className="glass-card-hover p-6 flex items-center gap-4 group">
           <div className="w-12 h-12 rounded-xl bg-secondary/10 border border-secondary/20 flex items-center justify-center text-secondary group-hover:shadow-glow-cyan transition-all">
