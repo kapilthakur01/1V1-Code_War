@@ -9,7 +9,9 @@ import ArgumentAnalysis from '../../components/debate/ArgumentAnalysis'
 import FallacyAlert from '../../components/debate/FallacyAlert'
 import DebateTimer from '../../components/debate/DebateTimer'
 import VoiceInput from '../../components/debate/VoiceInput'
-import { FiSend, FiArrowLeft, FiStopCircle, FiChevronDown, FiChevronUp, FiCpu } from 'react-icons/fi'
+import CameraFeed from '../../components/debate/CameraFeed'
+import QuitConfirmModal from '../../components/debate/QuitConfirmModal'
+import { FiSend, FiArrowLeft, FiChevronDown, FiChevronUp, FiCpu, FiLogOut } from 'react-icons/fi'
 
 export default function AIDebateRoom() {
   const { debateId } = useParams()
@@ -24,6 +26,7 @@ export default function AIDebateRoom() {
   const [lastAnalysis, setLastAnalysis] = useState(null)
   const [allFallacies, setAllFallacies] = useState([])
   const [ending, setEnding] = useState(false)
+  const [showQuitModal, setShowQuitModal] = useState(false)
   const messagesEndRef = useRef(null)
   const inputRef = useRef(null)
 
@@ -120,6 +123,7 @@ export default function AIDebateRoom() {
   const handleEnd = async () => {
     if (ending) return
     setEnding(true)
+    setShowQuitModal(false)
     try {
       await api.post(`/debate/${debateId}/end`)
       toast.success('Debate ended! View your results.')
@@ -179,16 +183,25 @@ export default function AIDebateRoom() {
               running={debate.status === 'active'}
             />
             <button
-              onClick={handleEnd}
+              onClick={() => setShowQuitModal(true)}
               disabled={ending}
               className="btn-danger text-xs py-2 px-3"
+              id="quit-debate-btn"
             >
-              {ending ? <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <FiStopCircle size={14} />}
-              <span className="hidden sm:inline">End</span>
+              {ending ? <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <FiLogOut size={14} />}
+              <span className="hidden sm:inline">Quit</span>
             </button>
           </div>
         </div>
       </div>
+
+      {/* Quit Confirmation Modal */}
+      <QuitConfirmModal
+        isOpen={showQuitModal}
+        onConfirm={handleEnd}
+        onCancel={() => setShowQuitModal(false)}
+        loading={ending}
+      />
 
       {/* Main Chat Area */}
       <div className="flex-1 overflow-hidden flex">
@@ -242,26 +255,39 @@ export default function AIDebateRoom() {
           </div>
         </div>
 
-        {/* Analysis Sidebar (desktop) */}
+        {/* Right Sidebar: Camera + Analysis (desktop) */}
         <AnimatePresence>
           {showAnalysis && (
             <motion.div
               initial={{ width: 0, opacity: 0 }}
-              animate={{ width: 320, opacity: 1 }}
+              animate={{ width: 340, opacity: 1 }}
               exit={{ width: 0, opacity: 0 }}
-              className="hidden lg:block border-l border-border overflow-y-auto bg-bg-primary/50"
+              className="hidden lg:flex flex-col border-l border-border overflow-y-auto bg-bg-primary/50"
             >
-              <div className="p-4">
-                <h3 className="text-xs font-bold text-text-muted uppercase tracking-wider mb-3">Analysis Panel</h3>
+              <div className="p-4 flex flex-col gap-4">
 
-                {/* Last analysis */}
+                {/* Camera Feeds */}
+                <div>
+                  <h3 className="text-xs font-bold text-text-muted uppercase tracking-wider mb-2">Live Camera</h3>
+                  <CameraFeed
+                    userName={user?.username || 'You'}
+                    opponentName="AI Opponent"
+                    isAI={true}
+                    side={participant?.side || 'support'}
+                    opponentSide={debate?.aiSide || 'oppose'}
+                  />
+                </div>
+
+                <div className="h-px bg-border" />
+
+                <h3 className="text-xs font-bold text-text-muted uppercase tracking-wider">Analysis Panel</h3>
+
                 {lastAnalysis && (
                   <ArgumentAnalysis analysis={lastAnalysis} />
                 )}
 
-                {/* Fallacies */}
                 {allFallacies.length > 0 && (
-                  <div className="mt-4">
+                  <div>
                     <h4 className="text-xs font-bold text-text-muted uppercase tracking-wider mb-2">
                       Detected Fallacies ({allFallacies.length})
                     </h4>
@@ -274,7 +300,7 @@ export default function AIDebateRoom() {
                 )}
 
                 {!lastAnalysis && allFallacies.length === 0 && (
-                  <p className="text-xs text-text-muted text-center py-8">
+                  <p className="text-xs text-text-muted text-center py-4">
                     Send a message to see real-time analysis here.
                   </p>
                 )}

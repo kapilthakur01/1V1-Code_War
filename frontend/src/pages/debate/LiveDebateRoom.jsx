@@ -9,7 +9,9 @@ import DebateMessage from '../../components/debate/DebateMessage'
 import ArgumentAnalysis from '../../components/debate/ArgumentAnalysis'
 import FallacyAlert from '../../components/debate/FallacyAlert'
 import DebateTimer from '../../components/debate/DebateTimer'
-import { FiSend, FiArrowLeft, FiStopCircle, FiUsers, FiCheck, FiCopy } from 'react-icons/fi'
+import CameraFeed from '../../components/debate/CameraFeed'
+import QuitConfirmModal from '../../components/debate/QuitConfirmModal'
+import { FiSend, FiArrowLeft, FiUsers, FiCheck, FiCopy, FiLogOut } from 'react-icons/fi'
 
 const SOCKET_URL = import.meta.env.VITE_BACKEND_URL || ''
 
@@ -28,6 +30,8 @@ export default function LiveDebateRoom() {
   const [allFallacies, setAllFallacies] = useState([])
   const [debateStarted, setDebateStarted] = useState(false)
   const [currentRound, setCurrentRound] = useState(1)
+  const [showQuitModal, setShowQuitModal] = useState(false)
+  const [quitting, setQuitting] = useState(false)
   const socketRef = useRef(null)
   const messagesEndRef = useRef(null)
   const typingTimeoutRef = useRef(null)
@@ -185,6 +189,8 @@ export default function LiveDebateRoom() {
   }
 
   const handleEnd = () => {
+    setQuitting(true)
+    setShowQuitModal(false)
     socketRef.current?.emit('debate:end', {
       roomCode: roomCode.toUpperCase(),
       debateId,
@@ -289,10 +295,43 @@ export default function LiveDebateRoom() {
           </div>
           <div className="flex items-center gap-2">
             <DebateTimer seconds={room.rounds?.timePerRound || 180} running={true} />
-            <button onClick={handleEnd} className="btn-danger text-xs py-2 px-3">
-              <FiStopCircle size={14} /> End
+            <button
+              onClick={() => setShowQuitModal(true)}
+              disabled={quitting}
+              className="btn-danger text-xs py-2 px-3"
+              id="quit-live-debate-btn"
+            >
+              {quitting
+                ? <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                : <FiLogOut size={14} />}
+              Quit
             </button>
           </div>
+        </div>
+      </div>
+
+      {/* Quit Confirmation Modal */}
+      <QuitConfirmModal
+        isOpen={showQuitModal}
+        onConfirm={handleEnd}
+        onCancel={() => setShowQuitModal(false)}
+        loading={quitting}
+      />
+
+      {/* Camera feeds - compact strip below top bar */}
+      <div className="border-b border-border bg-bg-primary/60 px-4 py-3">
+        <div className="max-w-5xl mx-auto">
+          <CameraFeed
+            userName={user?.username || 'You'}
+            opponentName={opponent?.username || 'Opponent'}
+            isAI={false}
+            opponentOnline={!!opponent}
+            side={myParticipant?.side || 'support'}
+            opponentSide={opponent
+              ? (room.participants?.find(p => p.userId !== user._id)?.side || 'oppose')
+              : 'oppose'
+            }
+          />
         </div>
       </div>
 
