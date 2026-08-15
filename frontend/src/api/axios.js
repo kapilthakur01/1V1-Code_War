@@ -14,13 +14,18 @@ api.interceptors.request.use((config) => {
   return config
 })
 
-// Handle 401 globally
+// Handle 401 globally — but skip redirect on auth pages themselves
+// (wrong password on /login returns 401, we don't want a hard redirect there)
 api.interceptors.response.use(
   (res) => res,
   (err) => {
     if (err.response?.status === 401) {
-      localStorage.removeItem('cc_token')
-      window.location.href = '/login'
+      const currentPath = window.location.pathname
+      const isAuthPage = currentPath === '/login' || currentPath === '/signup'
+      if (!isAuthPage) {
+        localStorage.removeItem('cc_token')
+        window.location.href = '/login'
+      }
     }
     return Promise.reject(err)
   }
