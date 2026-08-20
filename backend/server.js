@@ -25,10 +25,30 @@ const { initMatchController } = require('./src/controllers/matchController');
 const app = express();
 const server = http.createServer(app);
 
+// ── Allowed Origins ────────────────────────────────────────
+// FRONTEND_URL can be a comma-separated list of origins, e.g.:
+//   FRONTEND_URL=https://onev1-code-war-5.onrender.com,http://localhost:5173
+const allowedOrigins = process.env.FRONTEND_URL
+  ? process.env.FRONTEND_URL.split(',').map(o => o.trim()).filter(Boolean)
+  : [];
+
+const corsOriginFn = (origin, callback) => {
+  // Allow requests with no origin (mobile apps, curl, server-to-server)
+  if (!origin) return callback(null, true);
+  // If no FRONTEND_URL is configured, allow all (useful during initial deploy)
+  if (allowedOrigins.length === 0) return callback(null, true);
+  // Check if origin is in the allowed list
+  if (allowedOrigins.includes(origin)) return callback(null, true);
+  // Always allow localhost for local development
+  if (/^https?:\/\/localhost(:\d+)?$/.test(origin)) return callback(null, true);
+  console.warn(`CORS blocked: ${origin}`);
+  return callback(new Error(`CORS policy: origin '${origin}' not allowed`));
+};
+
 // ── Socket.IO ──────────────────────────────────────────────
 const io = new Server(server, {
   cors: {
-    origin: process.env.FRONTEND_URL || true,
+    origin: corsOriginFn,
     methods: ['GET', 'POST'],
     credentials: true,
   },
@@ -38,7 +58,7 @@ const io = new Server(server, {
 // ── Middleware ─────────────────────────────────────────────
 app.use(helmet({ contentSecurityPolicy: false }));
 app.use(cors({
-  origin: process.env.FRONTEND_URL || true,
+  origin: corsOriginFn,
   credentials: true,
 }));
 app.use(express.json({ limit: '2mb' }));

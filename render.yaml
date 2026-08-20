@@ -21,7 +21,7 @@ services:
       - key: JWT_EXPIRES_IN
         value: 7d
       - key: FRONTEND_URL
-        sync: false
+        value: https://onev1-code-war-5.onrender.com
       - key: JUDGE_TIMEOUT_MS
         value: 5000
       - key: JUDGE_MEMORY_MB
@@ -41,7 +41,7 @@ services:
     plan: free
     envVars:
       - key: VITE_BACKEND_URL
-        sync: false
+        value: https://onev1-code-war-4.onrender.com
     # SPA fallback: all routes serve index.html so React Router works on refresh
     routes:
       - type: rewrite
