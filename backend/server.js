@@ -57,6 +57,12 @@ const io = new Server(server, {
 
 // ── Middleware ─────────────────────────────────────────────
 app.use(helmet({ contentSecurityPolicy: false }));
+
+// Handle preflight (OPTIONS) for ALL routes BEFORE any other middleware.
+// This guarantees CORS headers are present even during Render cold-starts
+// or when downstream middleware short-circuits the request.
+app.options('*', cors({ origin: corsOriginFn, credentials: true }));
+
 app.use(cors({
   origin: corsOriginFn,
   credentials: true,
