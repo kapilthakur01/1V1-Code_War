@@ -6,6 +6,8 @@ node_modules/
 .env
 .env.local
 .env.*.local
+# NOTE: .env.production is intentionally committed — it only contains public URLs (no secrets).
+# Secrets (JWT_SECRET, MONGODB_URI, etc.) live only in .env (local) and Render dashboard (production).
 
 # Build outputs
 frontend/dist/
