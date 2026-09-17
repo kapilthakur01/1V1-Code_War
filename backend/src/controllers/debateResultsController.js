@@ -1,6 +1,7 @@
 const DebateResult = require('../models/DebateResult');
 const User = require('../models/User');
-const { generateCoachAdvice } = require('../services/geminiService');
+const { generateCoachAdvice } = require('../services/debateScoringService');
+
 
 /**
  * GET /api/debate-result/:debateId — Get result for a debate

@@ -3,7 +3,9 @@ const DebateArgument = require('../models/DebateArgument');
 const DebateResult = require('../models/DebateResult');
 const DebateLeaderboard = require('../models/DebateLeaderboard');
 const User = require('../models/User');
-const { generateDebateResponse, analyzeArgument, evaluateDebate } = require('../services/geminiService');
+// All debate logic runs locally — no external API required
+const { generateDebateResponse, analyzeArgument, evaluateDebate } = require('../services/debateScoringService');
+
 
 /**
  * POST /api/debate/create — Create a new AI debate
