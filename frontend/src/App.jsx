@@ -1,6 +1,7 @@
-import { Routes, Route, Navigate } from 'react-router-dom'
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from './contexts/AuthContext'
 import Navbar from './components/Navbar'
+import DashboardLayout from './components/DashboardLayout'
 import Home from './pages/Home'
 import Login from './pages/Login'
 import Signup from './pages/Signup'
@@ -23,6 +24,8 @@ import DebateProfile from './pages/debate/DebateProfile'
 
 function App() {
   const { user, loading } = useAuth()
+  const location = useLocation()
+  const isDashboard = location.pathname === '/dashboard'
 
   if (loading) {
     return (
@@ -36,15 +39,19 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-bg-primary">
-      <Navbar />
+    <div className={isDashboard ? 'dash-app' : 'min-h-screen bg-bg-primary'}>
+      {!isDashboard && <Navbar />}
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={user ? <Navigate to="/dashboard" /> : <Login />} />
         <Route path="/signup" element={user ? <Navigate to="/dashboard" /> : <Signup />} />
 
         <Route element={<ProtectedRoute />}>
-          <Route path="/dashboard" element={<Dashboard />} />
+          {/* Dashboard with sidebar layout */}
+          <Route element={<DashboardLayout />}>
+            <Route path="/dashboard" element={<Dashboard />} />
+          </Route>
+
           <Route path="/matchmaking" element={<Matchmaking />} />
           <Route path="/room/:roomId" element={<Room />} />
           <Route path="/history" element={<History />} />
