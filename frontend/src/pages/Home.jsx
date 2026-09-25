@@ -89,8 +89,8 @@ const itemVariants = {
 export default function Home() {
   return (
     <div className="relative">
-      {/* Background grid */}
-      <div className="absolute inset-0 bg-grid opacity-50 pointer-events-none" />
+      {/* Light background grid */}
+      <div className="absolute inset-0 bg-grid opacity-100 pointer-events-none" />
 
       {/* Hero Section */}
       <section className="relative page-container py-20 text-center">

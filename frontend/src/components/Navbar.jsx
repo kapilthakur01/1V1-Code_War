@@ -34,7 +34,7 @@ export default function Navbar() {
   const isActive = (path) => location.pathname === path
 
   return (
-    <nav className="sticky top-0 z-50 border-b border-border backdrop-blur-xl bg-bg-primary/80">
+    <nav className="sticky top-0 z-50 border-b border-border bg-white" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
@@ -83,7 +83,7 @@ export default function Navbar() {
               <div className="relative">
                 <button
                   onClick={() => setProfileOpen(!profileOpen)}
-                  className="flex items-center gap-2 px-3 py-2 rounded-xl bg-bg-card border border-border hover:border-primary/40 transition-all duration-200"
+                  className="flex items-center gap-2 px-3 py-2 rounded-xl bg-bg-secondary border border-border hover:border-primary/40 transition-all duration-200"
                 >
                   <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-xs font-bold text-white">
                     {user.username[0].toUpperCase()}
